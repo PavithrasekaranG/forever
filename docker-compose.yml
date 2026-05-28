@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: forever-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: forever-backend
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=4000
+      - MONGODB_URI=mongodb://mongodb:27017
+      - CLOUDINARY_NAME=test_cloudinary_name
+      - CLOUDINARY_API_KEY=test_api_key
+      - CLOUDINARY_SECRET_KEY=test_secret_key
+      - JWT_SECRET=test_jwt_secret_key_12345
+      - ADMIN_EMAIL=admin@example.com
+      - ADMIN_PASSWORD=admin123
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build: ./frontend
+    container_name: forever-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_BACKEND_URL=http://localhost:4000/api
+
+  admin:
+    build: ./admin
+    container_name: forever-admin
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_BACKEND_URL=http://localhost:4000/api
+
+volumes:
+  mongo_data:

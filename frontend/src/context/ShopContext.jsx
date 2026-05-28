@@ -2,7 +2,7 @@ import { createContext, useEffect, useState } from "react";
 import axios from 'axios';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
-
+import { products as dummyProducts } from '../assets/assets';
 
 
 export const ShopContext = createContext(); 
@@ -14,7 +14,7 @@ const ShopContextProvider = (props) => {
     console.log(backendUrl)
     const [search, setSearch] = useState('');
     const [showSearch, setShowSearch] = useState(false);
-    const [cartItems, setCartItems] = useState([]);
+    const [cartItems, setCartItems] = useState({});
     const [products, setProducts] = useState([])
     const [token, setToken] = useState('')
     const navigate = useNavigate();
@@ -102,18 +102,33 @@ const ShopContextProvider = (props) => {
     }
 
     const getProductsData = async () => {
+        const applyFallback = () => {
+            const fallbackProducts = dummyProducts.map((product) => ({
+                ...product,
+                images: product.images || product.image || [],
+            }))
+            setProducts(fallbackProducts)
+        }
+
         try {
             const response = await axios.get(backendUrl + '/api/product/list')
             if(response.data.success){
-                setProducts(response.data.products);
+                const serverProducts = response.data.products;
+                if(Array.isArray(serverProducts) && serverProducts.length > 0){
+                    setProducts(serverProducts);
+                } else {
+                    applyFallback();
+                }
             }
             else{
                 toast.error(response.data.message)
+                applyFallback();
             }
         }
         catch (error){
             console.log(error)
             toast.error(error.message)
+            applyFallback();
         }
     }
 
