@@ -21,9 +21,7 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Docker files
-/docker-compose.override.yml
-Dockerfile*
+
 
 # Test coverage
 /coverage
